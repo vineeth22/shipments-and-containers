@@ -1,0 +1,28 @@
+{
+  "name": "shipments-and-containers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vineeth22/shipments-and-containers.git"
+  },
+  "author": "Vineeth Suvarna",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vineeth22/shipments-and-containers/issues"
+  },
+  "homepage": "https://github.com/vineeth22/shipments-and-containers#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "mongodb": "^3.1.8"
+  },
+  "devDependencies": {
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  }
+}
