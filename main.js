@@ -213,7 +213,7 @@ const deleteShipment = async (shipmentId) => {
         _id: container._id,
       },
       {
-        $pull: { shipments: ObjectId(shipmentId) },
+        $pull: { shipments: shipment._id },
         $inc: {
           volumeFilled: -(shipment.volume),
           weightFilled: -(shipment.weight),
@@ -232,28 +232,54 @@ const deleteShipment = async (shipmentId) => {
   }
   client.close();
 }
+
+const updateContainerStatus = async (containerId, status) => {
+  let client;
+  try {
+    client = await MongoClient.connect(url, { useNewUrlParser: true });
+    console.log("Connected successfully to server");
+
+    const db = client.db(dbName);
+
+    r = await db.collection('containers').findOneAndUpdate(
+      {
+        _id: ObjectId(containerId),
+      },
+      {
+        $set: { status: status },
+      },
+      {
+        returnOriginal: false
+      }
+    );
+      console.log(r);
+  } catch (err) {
+    console.log(err.stack);
+  }
+  client.close();
+}
 /* ****testing */
 
-// (
-//   async () => {
-//     await reshuffleShipments();
-//   }
-// )();
+(
+  async () => {
+    await updateContainerStatus('5bd344b8433a3626581db832','transit');
+  }
+)();
 //addShipment({ weight: 123, volume: 234 });
 //createNewContainer();
 //createShipment assignContainer
 
-(
-  async () => {
-    let output;
-    output = await deleteShipment('5bd34393d821e725dce49ecf');
-    console.log(output);
-    output = await listShipments();
-    console.log(output);
-    output = await listContainers();
-    console.log(output);
-  }
-)();
+// (
+//   async () => {
+//     let output;
+//     output = await deleteShipment('5bd34393d821e725dce49ecf');
+//     console.log(output);
+//     output = await listShipments();
+//     console.log(output);
+//     output = await listContainers();
+//     console.log(output);
+//   }
+// )();
 
 /*
   let client;
@@ -302,5 +328,5 @@ db.containers.findOneAndUpdate(
 
 )
 
-//implement weight volume bound check
+//implement weight volume bound check, container status check
 */
