@@ -105,18 +105,23 @@ const updateShipmentContainer = async (shipment, container) => {
 }
 
 const createShipment = async (weight, volume) => {
-  let shipment = {
-    weight,
-    volume,
-  };
-  let newShipment = await addShipment(shipment);
-  let container = await assignContainer(newShipment);
-  if (container === null) {
-    await createContainer();
-    container = await assignContainer(newShipment);
+  try {
+    let shipment = {
+      weight,
+      volume,
+    };
+    let newShipment = await addShipment(shipment);
+    let container = await assignContainer(newShipment);
+    if (container === null) {
+      await createContainer();
+      container = await assignContainer(newShipment);
+    }
+    console.log(container);
+    await updateShipmentContainer(newShipment, container);
+  } catch{
+    console.log(err.stack);
   }
-  console.log(container);
-  await updateShipmentContainer(newShipment, container);
+  return 'Shipment added'
 }
 
 
@@ -226,11 +231,11 @@ const deleteShipment = async (shipmentId) => {
       }
     );
     console.log(r);
-
   } catch (err) {
     console.log(err.stack);
   }
   client.close();
+  return 'Shipment deleted';
 }
 
 const updateContainerStatus = async (containerId, status) => {
@@ -252,19 +257,26 @@ const updateContainerStatus = async (containerId, status) => {
         returnOriginal: false
       }
     );
-      console.log(r);
+    console.log(r);
   } catch (err) {
     console.log(err.stack);
   }
   client.close();
+  return 'Status changed';
 }
+
+module.exports.listContainers = listContainers;
+module.exports.updateContainerStatus = updateContainerStatus;
+module.exports.listShipments = listShipments;
+module.exports.deleteShipment = deleteShipment;
+module.exports.createShipment = createShipment;
 /* ****testing */
 
-(
-  async () => {
-    await updateContainerStatus('5bd344b8433a3626581db832','transit');
-  }
-)();
+// (
+//   async () => {
+//     await updateContainerStatus('5bd344b8433a3626581db832','transit');
+//   }
+// )();
 //addShipment({ weight: 123, volume: 234 });
 //createNewContainer();
 //createShipment assignContainer
@@ -328,5 +340,5 @@ db.containers.findOneAndUpdate(
 
 )
 
-//implement weight volume bound check, container status check
+//implement weight volume bound checktype check,error return,resuffle, container status check
 */

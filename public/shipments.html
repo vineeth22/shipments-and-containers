@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Shipments</title>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script src="js/shipment.js"></script>
+</head>
+
+<body>
+  <h2>Shipments and Containers</h2>
+  <h5>
+    <a href="shipments.html">Shipments</a>
+    <a href="containers.html">Containers</a>
+  </h5>
+  <div>
+    List of shipments
+    <pre id="listShipments"></pre>
+  </div>
+  <div style="position:fixed; top: 20%; right:5%">
+    <br>Create Shipment<br>
+    <input type="text" id="weight" style="width:100%;" placeholder="Enter shipment weight, limit 3000 kg">
+    <input type="text" id="volume" style="width:100%;" placeholder="Enter shipment volume, limit 25000000 cu cm">
+    <button type="button" id="create">Create</button>
+    <br>
+    <br>Delete shipment<br>
+    <input type="text" id="shipmentId" style="width:100%;" placeholder="Enter shipment _id, Eg: 5bd344b8433a3626581db832">
+    <button type="button" id="delete">Delete</button>
+    <br>
+  </div>
+</body>
+
+</html>
