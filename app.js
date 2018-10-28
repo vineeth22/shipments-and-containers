@@ -1,6 +1,6 @@
 const express = require('express');
-const main = require('./main');
 const bodyParser = require('body-parser');
+const main = require('./main');
 
 const app = express();
 const port = 3000;
@@ -18,7 +18,11 @@ app.get('/listContainers', async (req, res) => {
 
 app.post('/updateContainerStatus', async (req, res) => {
   let output = await main.updateContainerStatus(req.body.containerId, req.body.status);
-  res.send(output);
+  if (output === 'error') {
+    res.sendStatus(500);
+  } else {
+    res.send(output);
+  }
 });
 
 app.get('/listShipments', async (req, res) => {
@@ -28,12 +32,20 @@ app.get('/listShipments', async (req, res) => {
 
 app.post('/deleteShipment', async (req, res) => {
   let output = await main.deleteShipment(req.body.shipmentId);
-  res.send(output);
+  if (output === 'error') {
+    res.sendStatus(500);
+  } else {
+    res.send(output);
+  }
 });
 
 app.post('/createShipment', async (req, res) => {
   let output = await main.createShipment(req.body.weight, req.body.volume);
-  res.send(output);
+  if (output === 'error') {
+    res.sendStatus(500);
+  } else {
+    res.send(output);
+  }
 });
 
-app.listen(port, () => console.log(`App listening on port ${port}!`));
+app.listen(port, () => console.log(`App listening on port ${port}`));

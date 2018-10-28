@@ -1,14 +1,6 @@
 $(document).ready(function () {
-  $.ajax({
-    url: 'listContainers',
-    type: 'GET',
-  })
-    .done(function (res) {
-      document.getElementById("listContainers").innerHTML = JSON.stringify(res, undefined, 2);
-    })
-    .fail(function (xhr) {
-    })
 
+  listContainers();
 
   $("#update").click(function () {
     var containerId = $('#containerId').val();
@@ -28,8 +20,23 @@ $(document).ready(function () {
   })
       .done(function (res) {
         console.log(res);
+        $("#result").text(res);
+        listContainers();
       })
       .fail(function (xhr) {
 })
   });
 });
+
+function listContainers(){
+  $.ajax({
+    url: 'listContainers',
+    type: 'GET',
+  })
+    .done(function (res) {
+      document.getElementById("listContainers").innerHTML = JSON.stringify(res, undefined, 2);
+    })
+    .fail(function (xhr) {
+    })
+
+}

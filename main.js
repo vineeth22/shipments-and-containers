@@ -11,7 +11,6 @@ const addShipment = async (shipment) => {
   let newShipment = Object.assign(shipment);
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log('Connected successfully to server');
 
     const db = client.db(dbName);
     let r = await db.collection('shipments').insertOne(shipment);
@@ -29,7 +28,6 @@ const assignContainer = async (shipment) => {
   let container;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log('Connected successfully to server');
 
     const db = client.db(dbName);
     let r = await db.collection('containers').findOneAndUpdate(
@@ -51,7 +49,7 @@ const assignContainer = async (shipment) => {
         returnOriginal: false,
         sort: { volumeFilled: -1, weightFilled: -1 }
       }
-    )
+    );
     container = r.value;
   } catch (err) {
     console.log(err.stack);
@@ -75,7 +73,6 @@ const createContainer = async () => {
 
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log('Connected successfully to server');
 
     const db = client.db(dbName);
     let r = await db.collection('containers').insertOne(container);
@@ -92,7 +89,6 @@ const updateShipmentContainer = async (shipment, container) => {
   let client;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log("Connected successfully to server");
 
     const db = client.db(dbName);
     let r = await db.collection('shipments').updateOne({ _id: shipment._id }, { $set: { container: container._id } });
@@ -104,8 +100,14 @@ const updateShipmentContainer = async (shipment, container) => {
   client.close();
 }
 
+//* *****************main functions */
+
 const createShipment = async (weight, volume) => {
   try {
+    if (typeof weight !== 'number' || typeof volume !== 'number'
+      || weight > 3000 || volume > 25000000) {
+      return 'Invalid input';
+    }
     let shipment = {
       weight,
       volume,
@@ -118,11 +120,12 @@ const createShipment = async (weight, volume) => {
     }
     console.log(container);
     await updateShipmentContainer(newShipment, container);
-  } catch{
+    return 'Shipment added';
+  } catch (err) {
     console.log(err.stack);
+    return 'error';
   }
-  return 'Shipment added'
-}
+};
 
 
 const listShipments = async () => {
@@ -130,12 +133,12 @@ const listShipments = async () => {
   let shipments;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log('Connected successfully to server');
 
     const db = client.db(dbName);
     shipments = await db.collection('shipments').find().toArray();
   } catch (err) {
     console.log(err.stack);
+    return 'error';
   }
   client.close();
   return shipments;
@@ -146,12 +149,12 @@ const listContainers = async () => {
   let containers;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log('Connected successfully to server');
 
     const db = client.db(dbName);
     containers = await db.collection('containers').find().toArray();
   } catch (err) {
     console.log(err.stack);
+    return 'error';
   }
   client.close();
   return containers;
@@ -162,7 +165,6 @@ const reshuffleShipments = async () => {
   let client;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log("Connected successfully to server");
 
     const db = client.db(dbName);
     let r = await db.collection('containers').find({ status: 'draft' }).project({ shipments: 1 }).toArray();
@@ -189,14 +191,19 @@ const deleteShipment = async (shipmentId) => {
   let client;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log("Connected successfully to server");
+
     const db = client.db(dbName);
+    try {
+      ObjectId(shipmentId);
+    } catch (err) {
+      return 'Invalid object id';
+    }
     let r = await db.collection('shipments').find({ _id: ObjectId(shipmentId) }).project().toArray();
     let shipment = r[0];
     if (shipment === undefined) {
       console.log('Shipment not found');
       client.close();
-      return;
+      return ('Shipment not found');
     }
     console.log(shipment);
 
@@ -207,7 +214,7 @@ const deleteShipment = async (shipmentId) => {
     if (container !== undefined && container.status !== 'draft') {
       console.log('Shipment cannot be deleted');
       client.close();
-      return;
+      return 'Shipment cannot be deleted';
     }
 
     r = await db.collection('shipments').deleteOne({ _id: shipment._id });
@@ -231,18 +238,22 @@ const deleteShipment = async (shipmentId) => {
       }
     );
     console.log(r);
+    await reshuffleShipments();
   } catch (err) {
     console.log(err.stack);
+    return 'error';
   }
   client.close();
   return 'Shipment deleted';
 }
 
 const updateContainerStatus = async (containerId, status) => {
+  if (status !== 'draft' && status !== 'transit' && status !== 'completed') {
+    return 'Invalid status';
+  }
   let client;
   try {
     client = await MongoClient.connect(url, { useNewUrlParser: true });
-    console.log("Connected successfully to server");
 
     const db = client.db(dbName);
 
@@ -260,6 +271,7 @@ const updateContainerStatus = async (containerId, status) => {
     console.log(r);
   } catch (err) {
     console.log(err.stack);
+    return 'error';
   }
   client.close();
   return 'Status changed';
@@ -277,9 +289,9 @@ module.exports.createShipment = createShipment;
 //     await updateContainerStatus('5bd344b8433a3626581db832','transit');
 //   }
 // )();
-//addShipment({ weight: 123, volume: 234 });
-//createNewContainer();
-//createShipment assignContainer
+// addShipment({ weight: 123, volume: 234 });
+// createNewContainer();
+// createShipment assignContainer
 
 // (
 //   async () => {
@@ -340,5 +352,4 @@ db.containers.findOneAndUpdate(
 
 )
 
-//implement weight volume bound checktype check,error return,resuffle, container status check
 */

@@ -1,14 +1,6 @@
 $(document).ready(function () {
-  $.ajax({
-    url: 'listShipments',
-    type: 'GET',
-  })
-    .done(function (res) {
-      document.getElementById("listShipments").innerHTML = JSON.stringify(res, undefined, 2);
-    })
-    .fail(function (xhr) {
-    })
 
+  listShipments();
 
   $("#create").click(function () {
     var weight = parseInt($('#weight').val());
@@ -27,6 +19,8 @@ $(document).ready(function () {
     })
       .done(function (res) {
         console.log(res);
+        $("#result").text(res);
+        listShipments();
       })
       .fail(function (xhr) {
       })
@@ -47,8 +41,23 @@ $(document).ready(function () {
     })
       .done(function (res) {
         console.log(res);
+        $("#result").text(res);
+        listShipments();
       })
       .fail(function (xhr) {
       })
   });
 });
+
+
+function listShipments() {
+  $.ajax({
+    url: 'listShipments',
+    type: 'GET',
+  })
+    .done(function (res) {
+      document.getElementById("listShipments").innerHTML = JSON.stringify(res, undefined, 2);
+    })
+    .fail(function (xhr) {
+    })
+}
