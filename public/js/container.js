@@ -8,8 +8,8 @@ $(document).ready(function () {
 
     var data = {
       containerId,
-      status 
-       }
+      status
+    }
     console.log(containerId);
 
     $.ajax({
@@ -17,18 +17,19 @@ $(document).ready(function () {
       data: JSON.stringify(data),
       type: 'POST',
       contentType: 'application/json; charset=UTF-8'
-  })
+    })
       .done(function (res) {
         console.log(res);
         $("#result").text(res);
         listContainers();
       })
       .fail(function (xhr) {
-})
+        alert('Error');
+      })
   });
 });
 
-function listContainers(){
+function listContainers() {
   $.ajax({
     url: 'listContainers',
     type: 'GET',
@@ -37,6 +38,7 @@ function listContainers(){
       document.getElementById("listContainers").innerHTML = JSON.stringify(res, undefined, 2);
     })
     .fail(function (xhr) {
+      alert('Error');
     })
 
 }

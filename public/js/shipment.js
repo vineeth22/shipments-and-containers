@@ -23,6 +23,7 @@ $(document).ready(function () {
         listShipments();
       })
       .fail(function (xhr) {
+        alert('Error');
       })
   });
 
@@ -45,6 +46,7 @@ $(document).ready(function () {
         listShipments();
       })
       .fail(function (xhr) {
+        alert('Error');
       })
   });
 });
@@ -59,5 +61,6 @@ function listShipments() {
       document.getElementById("listShipments").innerHTML = JSON.stringify(res, undefined, 2);
     })
     .fail(function (xhr) {
+      alert('Error');
     })
 }
