@@ -1,5 +1,6 @@
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 const assert = require('assert');
+const { ObjectId } = require('mongodb');
 
 const url = 'mongodb://localhost:27017';
 const dbName = 'sac';
@@ -114,6 +115,7 @@ const createShipment = async (weight, volume) => {
     await createContainer();
     container = await assignContainer(newShipment);
   }
+  console.log(container);
   await updateShipmentContainer(newShipment, container);
 }
 
@@ -151,20 +153,108 @@ const listContainers = async () => {
 };
 
 
+const reshuffleShipments = async () => {
+  let client;
+  try {
+    client = await MongoClient.connect(url, { useNewUrlParser: true });
+    console.log("Connected successfully to server");
+
+    const db = client.db(dbName);
+    let r = await db.collection('containers').find({ status: 'draft' }).project({ shipments: 1 }).toArray();
+    let shipmentIds = r.reduce((accumulator, currentValue) => {
+      return [...accumulator, ...currentValue.shipments];
+    }, []);
+    r = await db.collection('containers').deleteMany({ status: 'draft' });
+    let shipments = await db.collection('shipments').find({ _id: { $in: shipmentIds } }).sort({ volume: -1, weight: -1 }).toArray();
+    for (shipment of shipments) {
+      let container = await assignContainer(shipment);
+      if (container === null) {
+        await createContainer();
+        container = await assignContainer(shipment);
+      }
+      await updateShipmentContainer(shipment, container);
+    }
+  } catch (err) {
+    console.log(err.stack);
+  }
+  client.close();
+}
+
+const deleteShipment = async (shipmentId) => {
+  let client;
+  try {
+    client = await MongoClient.connect(url, { useNewUrlParser: true });
+    console.log("Connected successfully to server");
+    const db = client.db(dbName);
+    let r = await db.collection('shipments').find({ _id: ObjectId(shipmentId) }).project().toArray();
+    let shipment = r[0];
+    if (shipment === undefined) {
+      console.log('Shipment not found');
+      client.close();
+      return;
+    }
+    console.log(shipment);
+
+    r = await db.collection('containers').find({ shipments: ObjectId(shipmentId) }).toArray();
+    let container = r[0];
+    console.log(container);
+
+    if (container !== undefined && container.status !== 'draft') {
+      console.log('Shipment cannot be deleted');
+      client.close();
+      return;
+    }
+
+    r = await db.collection('shipments').deleteOne({ _id: shipment._id });
+    assert.equal(1, r.deletedCount);
+
+    r = await db.collection('containers').findOneAndUpdate(
+      {
+        _id: container._id,
+      },
+      {
+        $pull: { shipments: ObjectId(shipmentId) },
+        $inc: {
+          volumeFilled: -(shipment.volume),
+          weightFilled: -(shipment.weight),
+          volumeAvailable: shipment.volume,
+          weightAvailable: shipment.weight
+        },
+      },
+      {
+        returnOriginal: false
+      }
+    );
+    console.log(r);
+
+  } catch (err) {
+    console.log(err.stack);
+  }
+  client.close();
+}
 /* ****testing */
+
+// (
+//   async () => {
+//     await reshuffleShipments();
+//   }
+// )();
 //addShipment({ weight: 123, volume: 234 });
 //createNewContainer();
 //createShipment assignContainer
+
 (
   async () => {
     let output;
-    await createShipment(1100, 40000);
+    output = await deleteShipment('5bd34393d821e725dce49ecf');
+    console.log(output);
     output = await listShipments();
     console.log(output);
     output = await listContainers();
     console.log(output);
   }
 )();
+
 /*
   let client;
   try {
@@ -211,4 +301,6 @@ db.containers.findOneAndUpdate(
  }
 
 )
+
+//implement weight volume bound check
 */
